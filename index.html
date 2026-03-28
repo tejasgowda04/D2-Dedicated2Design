@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D2 — Dedicated 2 Design | Architecture & Interiors</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <style>
+        /* Base Typography */
+        .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+        .font-jost { font-family: 'Jost', sans-serif; }
+
+        /* Global Reset & Scrollbar */
+        body {
+            background-color: #F9F7F4;
+            color: #1E1E1E;
+            overflow-x: hidden;
+            cursor: none; /* Custom cursor */
+        }
+        ::selection {
+            background-color: #7A6652;
+            color: #FDFCFA;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F9F7F4;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E8E4DF;
+        }
+
+        /* Custom Cursor */
+        #cursor-dot {
+            position: fixed;
+            top: 0; left: 0;
+            width: 7px; height: 7px;
+            background-color: #7A6652;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+        }
+        #cursor-circle {
+            position: fixed;
+            top: 0; left: 0;
+            width: 30px; height: 30px;
+            border: 1px solid #7A6652;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #cursor-circle span {
+            opacity: 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 10px;
+            color: #FDFCFA;
+            transition: opacity 0.3s ease;
+        }
+        /* Cursor States */
+        body.hovering-link #cursor-dot { opacity: 0; }
+        body.hovering-link #cursor-circle {
+            background-color: #7A6652;
+            width: 40px; height: 40px;
+        }
+        body.hovering-img #cursor-dot { opacity: 0; }
+        body.hovering-img #cursor-circle {
+            background-color: #7A6652;
+            width: 60px; height: 60px;
+        }
+        body.hovering-img #cursor-circle span { opacity: 1; }
+        @media (max-width: 768px) {
+            #cursor-dot, #cursor-circle { display: none !important; }
+            body { cursor: auto; }
+        }
+
+        /* Animations */
+        .ease-hero { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        .reveal-text { transform: translateY(110%); }
+        .reveal-text.active { transform: translateY(0); }
+        
+        .fade-up { opacity: 0; transform: translateY(16px); transition: opacity 1s ease, transform 1s ease; }
+        .fade-up.active { opacity: 1; transform: translateY(0); }
+        
+        .draw-line { width: 0; transition: width 1.2s ease; }
+        .draw-line.active { width: 100%; }
+        .draw-line-y { height: 0; transition: height 1.2s ease; }
+        .draw-line-y.active { height: 100%; }
+
+        @keyframes kenburns {
+            0% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+        .animate-kenburns { animation: kenburns 10s ease forwards; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        /* Utility specific */
+        .img-parallax-container { overflow: hidden; }
+        .img-parallax { height: 120%; width: 100%; object-fit: cover; transform: translateY(-10%); }
+        
+        .nav-scrolled {
+            background: rgba(249, 247, 244, 0.94);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid #E8E4DF;
+        }
+
+        .hover-underline::after {
+            content: ''; position: absolute; bottom: -2px; left: 0;
+            width: 0; height: 1px; background-color: #7A6652;
+            transition: width 0.35s ease;
+        }
+        .hover-underline:hover::after { width: 100%; }
+        
+        /* Forms */
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #7A6652; }
+        
+        /* Process Line */
+        .process-line::before {
+            content: ''; position: absolute; top: 6px; left: 0;
+            width: 100%; height: 1px; background-color: #7A6652; z-index: 0;
+            transform-origin: left; transform: scaleX(0); transition: transform 1.2s ease;
+        }
+        .process-line.active::before { transform: scaleX(1); }
+        @media (max-width: 768px) {
+            .process-line::before {
+                top: 0; left: 6px; width: 1px; height: 100%;
+                transform-origin: top; transform: scaleY(0); transition: transform 1.2s ease;
+            }
+            .process-line.active::before { transform: scaleY(1); transform: scaleX(1); }
+        }
+    </style>
+</head>
+<body class="font-jost text-[#1E1E1E] antialiased">
+
+    <!-- Preloader -->
+    <div id="preloader" class="fixed inset-0 z-[99999] bg-[#F9F7F4] flex flex-col items-center justify-center transition-opacity duration-1000">
+        <div id="pl-dot" class="w-2.5 h-2.5 bg-[#7A6652] rounded-full opacity-0 transition-opacity duration-1500"></div>
+        <div id="pl-title" class="mt-8 font-cormorant font-light text-lg tracking-[0.4em] opacity-0 transition-opacity duration-1000 text-[#1E1E1E]">D2</div>
+        <div id="pl-sub" class="mt-2 text-[11px] tracking-[0.3em] uppercase text-[#9A9490] opacity-0 transition-opacity duration-1000">Dedicated 2 Design</div>
+        <div class="w-12 h-px mt-6 overflow-hidden">
+            <div id="pl-line" class="w-full h-full bg-[#7A6652] -translate-x-full transition-transform duration-[2s] ease-in-out"></div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-circle"><span>VIEW</span></div>
+
+    <!-- Scroll Progress -->
+    <div class="fixed top-0 left-0 w-full h-px z-50">
+        <div id="scroll-progress" class="h-full bg-[#7A6652] w-0"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 w-full z-40 transition-all duration-500 py-6 px-6 md:px-12 flex justify-between items-center">
+        <div class="flex items-center gap-4 cursor-interact z-50 relative">
+            <span class="font-cormorant font-light text-2xl tracking-tight">D2</span>
+            <span class="w-2 h-2 bg-[#7A6652] rounded-full mt-1"></span>
+            <span class="text-[10px] text-[#9A9490] tracking-[0.15em] hidden md:block mt-1 uppercase">Dedicated 2 Design</span>
+        </div>
+        
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex gap-10 text-[11px] tracking-[0.12em] uppercase">
+            <a href="#work" class="relative hover-underline cursor-interact pb-1 text-[#1E1E1E]">Work</a>
+            <a href="#studio" class="relative hover-underline cursor-interact pb-1 text-[#1E1E1E]">Studio</a>
+            <a href="#services" class="relative hover-underline cursor-interact pb-1 text-[#1E1E1E]">Services</a>
+            <a href="#process" class="relative hover-underline cursor-interact pb-1 text-[#1E1E1E]">Process</a>
+            <a href="#contact" class="relative hover-underline cursor-interact pb-1 text-[#1E1E1E]">Contact</a>
+        </div>
+
+        <!-- Mobile Toggle -->
+        <button id="menu-toggle" class="md:hidden z-50 flex flex-col gap-1.5 cursor-interact relative">
+            <span class="w-6 h-px bg-[#7A6652] transition-transform duration-300"></span>
+            <span class="w-6 h-px bg-[#7A6652] transition-transform duration-300"></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-[#F9F7F4] z-30 opacity-0 pointer-events-none transition-opacity duration-500 flex flex-col justify-center items-center gap-8">
+        <a href="#work" class="font-cormorant italic text-4xl text-[#1E1E1E] mobile-link">Work</a>
+        <a href="#studio" class="font-cormorant italic text-4xl text-[#1E1E1E] mobile-link">Studio</a>
+        <a href="#services" class="font-cormorant italic text-4xl text-[#1E1E1E] mobile-link">Services</a>
+        <a href="#process" class="font-cormorant italic text-4xl text-[#1E1E1E] mobile-link">Process</a>
+        <a href="#contact" class="font-cormorant italic text-4xl text-[#1E1E1E] mobile-link">Contact</a>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section class="relative h-screen w-full flex items-end pb-[18vh] px-6 md:px-12 overflow-hidden">
+        <!-- Parallax BG -->
+        <div class="absolute inset-0 z-0">
+            <div id="hero-bg" class="absolute inset-[-10%] w-[120%] h-[120%] animate-kenburns bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80');"></div>
+            <div class="absolute inset-0 bg-[#F9F7F4]/70"></div>
+        </div>
+
+        <div class="relative z-10 w-full max-w-7xl mx-auto">
+            <p class="font-cormorant italic text-xs text-[#7A6652] tracking-[0.2em] uppercase mb-8 fade-up hero-element">[ Luxury Architecture & Interior Design ]</p>
+            
+            <h1 class="font-cormorant tracking-tight flex flex-col gap-2 md:gap-0">
+                <div class="overflow-hidden"><span class="block text-5xl md:text-7xl lg:text-9xl font-light text-[#1E1E1E] leading-none reveal-text hero-text transition-transform duration-[1.2s] ease-hero">Spaces</span></div>
+                <div class="overflow-hidden"><span class="block text-5xl md:text-7xl lg:text-9xl font-semibold italic text-[#7A6652] leading-none reveal-text hero-text transition-transform duration-[1.2s] ease-hero" style="transition-delay: 0.2s;">Designed to</span></div>
+                <div class="overflow-hidden"><span class="block text-5xl md:text-7xl lg:text-9xl font-light text-[#1E1E1E] leading-none reveal-text hero-text transition-transform duration-[1.2s] ease-hero" style="transition-delay: 0.4s;">Breathe.</span></div>
+            </h1>
+            
+            <div class="h-px bg-[#7A6652] w-0 hero-element mt-12 mb-8 transition-all duration-1000" style="max-width: 48px;"></div>
+            
+            <p class="font-light text-base text-[#9A9490] leading-relaxed max-w-md mb-8 fade-up hero-element">Sustainable · Bespoke · Timeless — luxury architecture and interior design across South India</p>
+            
+            <a href="#work" class="inline-block font-cormorant italic text-base text-[#7A6652] border-b border-[#7A6652] pb-1 cursor-interact fade-up hero-element hover:text-[#1E1E1E] hover:border-[#1E1E1E] transition-colors duration-300">Explore Our Work &rarr;</a>
+        </div>
+
+        <div class="absolute bottom-12 right-6 md:right-12 flex flex-col items-center gap-4 fade-up hero-element">
+            <span class="text-[10px] text-[#9A9490] tracking-[0.2em] uppercase" style="writing-mode: vertical-rl;">Scroll</span>
+            <div class="w-px h-[60px] bg-[#E8E4DF] overflow-hidden">
+                <div class="w-full h-full bg-[#7A6652] -translate-y-full animate-[slideDown_2s_ease-in-out_infinite]"></div>
+            </div>
+        </div>
+    </section>
+
+    <style>@keyframes slideDown { 0% { transform: translateY(-100%); } 50%, 100% { transform: translateY(100%); } }</style>
+
+    <!-- INTRO QUOTE -->
+    <section class="bg-[#F2EFE9] py-36 relative">
+        <div class="absolute top-0 left-0 h-px bg-[#E8E4DF] draw-line w-0"></div>
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="font-cormorant italic font-light text-3xl md:text-4xl lg:text-5xl text-[#1E1E1E] leading-relaxed mb-8 fade-up">
+                "Understated architecture.<br>Thoughtful landscape.<br>Spaces designed to breathe."
+            </h2>
+            <p class="text-xs text-[#9A9490] tracking-[0.15em] uppercase fade-up delay-200">— Ar. Revathi Velu, Founder</p>
+        </div>
+        <div class="absolute bottom-0 left-0 h-px bg-[#E8E4DF] draw-line w-0"></div>
+    </section>
+
+    <!-- STATS -->
+    <section class="bg-[#F9F7F4] py-24 border-b border-[#E8E4DF]">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-0">
+            <div class="text-center md:border-r border-[#E8E4DF] fade-up">
+                <div class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] mb-3 counter" data-target="268" data-suffix="+">0</div>
+                <div class="text-[11px] text-[#9A9490] tracking-[0.15em] uppercase">Projects Completed</div>
+            </div>
+            <div class="text-center md:border-r border-[#E8E4DF] fade-up delay-100">
+                <div class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] mb-3 counter" data-target="5">0</div>
+                <div class="text-[11px] text-[#9A9490] tracking-[0.15em] uppercase">Cities Served</div>
+            </div>
+            <div class="text-center md:border-r border-[#E8E4DF] fade-up delay-200">
+                <div class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] mb-3 counter" data-target="4740" data-suffix="+">0</div>
+                <div class="text-[11px] text-[#9A9490] tracking-[0.15em] uppercase">Studio Followers</div>
+            </div>
+            <div class="text-center fade-up delay-300">
+                <div class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] mb-3 counter" data-target="2017">0</div>
+                <div class="text-[11px] text-[#9A9490] tracking-[0.15em] uppercase">Est. Year</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT / STUDIO -->
+    <section id="studio" class="py-36 md:py-40 bg-[#F9F7F4] overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
+            
+            <div class="md:col-span-6 lg:col-span-6 relative z-10 fade-up">
+                <!-- Decorative pseudo elements simulated -->
+                <div class="absolute -top-4 -left-4 w-[55%] h-[55%] border border-[#7A6652] z-[-1]"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-cormorant font-light text-[180px] text-[#1E1E1E] opacity-[0.04] z-[-1] pointer-events-none tracking-tight">D2</div>
+                
+                <div class="img-parallax-container aspect-[4/5] w-full cursor-interact-img">
+                    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80" alt="Studio Architecture" class="img-parallax object-cover w-full h-full rounded-none" id="about-img">
+                </div>
+            </div>
+
+            <div class="md:col-span-6 lg:col-span-5 lg:col-start-8">
+                <p class="font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-8 fade-up">01 · Studio</p>
+                <h2 class="font-cormorant font-light text-5xl md:text-6xl text-[#1E1E1E] leading-[1.05] tracking-tight mb-10 fade-up">Architecture Built on Listening & Craft</h2>
+                
+                <div class="space-y-6 text-base text-[#9A9490] font-light leading-relaxed mb-12 fade-up">
+                    <p>D2 — Dedicated 2 Design is a luxury architectural studio founded by Ar. Revathi Velu. We specialize in sustainable, bespoke spaces that reflect the unique stories of the people who inhabit them.</p>
+                    <p>Practicing across Bengaluru, Chennai, Madurai, Coimbatore and Hyderabad, we approach every project — whether residential, commercial or landscape — with the same commitment to thoughtful, enduring design.</p>
+                </div>
+
+                <div class="border-l-2 border-[#7A6652] pl-6 py-2 bg-[#F2EFE9] mb-12 fade-up">
+                    <p class="font-cormorant italic text-xl text-[#1E1E1E]">"Every space holds a story. We help you tell it beautifully."</p>
+                </div>
+
+                <a href="#contact" class="inline-block font-light text-sm text-[#7A6652] border-b border-[#7A6652] pb-1 cursor-interact fade-up hover:text-[#1E1E1E] hover:border-[#1E1E1E] transition-colors duration-300">Book a Consultation &rarr;</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services" class="py-36 md:py-40 bg-[#F9F7F4]">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 mb-16 fade-up">
+            <p class="font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-6">02 · Services</p>
+            <h2 class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] tracking-tight">What We Offer</h2>
+        </div>
+
+        <div class="h-px bg-[#E8E4DF] w-full draw-line"></div>
+
+        <div class="w-full">
+            <!-- Service Row 1 -->
+            <div class="group relative border-b border-[#E8E4DF] transition-colors duration-500 hover:bg-[#F2EFE9] cursor-interact">
+                <div class="absolute left-0 top-0 bottom-0 w-[2px] bg-[#7A6652] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
+                <div class="max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+                    <span class="font-cormorant italic text-xs text-[#7A6652] md:w-16">01</span>
+                    <h3 class="font-cormorant font-normal text-3xl md:text-4xl text-[#1E1E1E] flex-grow">Luxury Architecture</h3>
+                    <p class="font-light text-sm text-[#9A9490] md:max-w-[280px] leading-relaxed">Residential and commercial architecture designed with precision, purpose and an unwavering commitment to quality.</p>
+                    <span class="text-[#7A6652] opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 transition-all duration-300 hidden md:block">&rarr;</span>
+                </div>
+            </div>
+            
+            <!-- Service Row 2 -->
+            <div class="group relative border-b border-[#E8E4DF] transition-colors duration-500 hover:bg-[#F2EFE9] cursor-interact">
+                <div class="absolute left-0 top-0 bottom-0 w-[2px] bg-[#7A6652] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
+                <div class="max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+                    <span class="font-cormorant italic text-xs text-[#7A6652] md:w-16">02</span>
+                    <h3 class="font-cormorant font-normal text-3xl md:text-4xl text-[#1E1E1E] flex-grow">Interior Design</h3>
+                    <p class="font-light text-sm text-[#9A9490] md:max-w-[280px] leading-relaxed">Bespoke interiors that balance beauty with function — each space curated to reflect your lifestyle.</p>
+                    <span class="text-[#7A6652] opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 transition-all duration-300 hidden md:block">&rarr;</span>
+                </div>
+            </div>
+
+            <!-- Service Row 3 -->
+            <div class="group relative border-b border-[#E8E4DF] transition-colors duration-500 hover:bg-[#F2EFE9] cursor-interact">
+                <div class="absolute left-0 top-0 bottom-0 w-[2px] bg-[#7A6652] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
+                <div class="max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+                    <span class="font-cormorant italic text-xs text-[#7A6652] md:w-16">03</span>
+                    <h3 class="font-cormorant font-normal text-3xl md:text-4xl text-[#1E1E1E] flex-grow">Landscape Design</h3>
+                    <p class="font-light text-sm text-[#9A9490] md:max-w-[280px] leading-relaxed">Thoughtful outdoor environments that connect architecture with nature, extending living spaces beyond walls.</p>
+                    <span class="text-[#7A6652] opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 transition-all duration-300 hidden md:block">&rarr;</span>
+                </div>
+            </div>
+
+            <!-- Service Row 4 -->
+            <div class="group relative border-b border-[#E8E4DF] transition-colors duration-500 hover:bg-[#F2EFE9] cursor-interact">
+                <div class="absolute left-0 top-0 bottom-0 w-[2px] bg-[#7A6652] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
+                <div class="max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+                    <span class="font-cormorant italic text-xs text-[#7A6652] md:w-16">04</span>
+                    <h3 class="font-cormorant font-normal text-3xl md:text-4xl text-[#1E1E1E] flex-grow">Sustainability</h3>
+                    <p class="font-light text-sm text-[#9A9490] md:max-w-[280px] leading-relaxed">Integrating biophilic principles and sustainable materials for spaces that are beautiful and responsible.</p>
+                    <span class="text-[#7A6652] opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 transition-all duration-300 hidden md:block">&rarr;</span>
+                </div>
+            </div>
+
+            <!-- Service Row 5 -->
+            <div class="group relative border-b border-[#E8E4DF] transition-colors duration-500 hover:bg-[#F2EFE9] cursor-interact">
+                <div class="absolute left-0 top-0 bottom-0 w-[2px] bg-[#7A6652] scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
+                <div class="max-w-7xl mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12">
+                    <span class="font-cormorant italic text-xs text-[#7A6652] md:w-16">05</span>
+                    <h3 class="font-cormorant font-normal text-3xl md:text-4xl text-[#1E1E1E] flex-grow">Design Consultancy</h3>
+                    <p class="font-light text-sm text-[#9A9490] md:max-w-[280px] leading-relaxed">Expert guidance from concept to completion — material selection, planning and on-site supervision.</p>
+                    <span class="text-[#7A6652] opacity-0 group-hover:opacity-100 transform -translate-x-4 group-hover:translate-x-0 transition-all duration-300 hidden md:block">&rarr;</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section id="work" class="py-36 md:py-40 bg-[#FDFCFA]">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+                <div class="fade-up">
+                    <p class="font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-6">03 · Selected Work</p>
+                    <h2 class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] tracking-tight">Projects That Define Us</h2>
+                </div>
+                <div class="flex gap-6 font-cormorant italic text-sm text-[#9A9490] fade-up delay-100">
+                    <button class="text-[#1E1E1E] border-b border-[#7A6652] pb-1">All</button>
+                    <button class="hover:text-[#1E1E1E] transition-colors">Architecture</button>
+                    <button class="hover:text-[#1E1E1E] transition-colors">Interior</button>
+                    <button class="hover:text-[#1E1E1E] transition-colors">Landscape</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-y-16 md:gap-x-8">
+                <!-- Row 1 -->
+                <div class="md:col-span-7 group cursor-interact-img fade-up">
+                    <div class="overflow-hidden relative mb-4 bg-[#F2EFE9] aspect-[4/3]">
+                        <div class="absolute inset-0 bg-[#7A6652]/0 group-hover:bg-[#7A6652]/10 transition-colors duration-500 z-10 pointer-events-none"></div>
+                        <img src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1200&q=80" alt="Bengaluru Residence" class="w-full h-full object-cover transform scale-100 group-hover:scale-[1.04] transition-transform duration-[0.6s] ease-out rounded-none">
+                    </div>
+                    <div class="transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-300">
+                        <p class="font-cormorant italic text-[10px] text-[#7A6652] tracking-[0.2em] uppercase mb-1">Architecture</p>
+                        <h3 class="font-normal text-lg text-[#1E1E1E]">Bengaluru Residence</h3>
+                    </div>
+                </div>
+                <div class="md:col-span-5 group cursor-interact-img fade-up delay-100 md:mt-16">
+                    <div class="overflow-hidden relative mb-4 bg-[#F2EFE9] aspect-[3/4]">
+                        <div class="absolute inset-0 bg-[#7A6652]/0 group-hover:bg-[#7A6652]/10 transition-colors duration-500 z-10 pointer-events-none"></div>
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80" alt="Bespoke Living Space" class="w-full h-full object-cover transform scale-100 group-hover:scale-[1.04] transition-transform duration-[0.6s] ease-out rounded-none">
+                    </div>
+                    <div class="transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-300">
+                        <p class="font-cormorant italic text-[10px] text-[#7A6652] tracking-[0.2em] uppercase mb-1">Interior</p>
+                        <h3 class="font-normal text-lg text-[#1E1E1E]">Bespoke Living Space</h3>
+                    </div>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="md:col-span-4 group cursor-interact-img fade-up">
+                    <div class="overflow-hidden relative mb-4 bg-[#F2EFE9] aspect-square">
+                        <div class="absolute inset-0 bg-[#7A6652]/0 group-hover:bg-[#7A6652]/10 transition-colors duration-500 z-10 pointer-events-none"></div>
+                        <img src="https://images.unsplash.com/photo-1616137466211-f939a420be84?w=800&q=80" alt="Thoughtful Garden" class="w-full h-full object-cover transform scale-100 group-hover:scale-[1.04] transition-transform duration-[0.6s] ease-out rounded-none">
+                    </div>
+                    <div class="transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-300">
+                        <p class="font-cormorant italic text-[10px] text-[#7A6652] tracking-[0.2em] uppercase mb-1">Landscape</p>
+                        <h3 class="font-normal text-lg text-[#1E1E1E]">Thoughtful Garden</h3>
+                    </div>
+                </div>
+                <div class="md:col-span-4 group cursor-interact-img fade-up delay-100 md:mt-12">
+                    <div class="overflow-hidden relative mb-4 bg-[#F2EFE9] aspect-square">
+                        <div class="absolute inset-0 bg-[#7A6652]/0 group-hover:bg-[#7A6652]/10 transition-colors duration-500 z-10 pointer-events-none"></div>
+                        <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&q=80" alt="Master Suite" class="w-full h-full object-cover transform scale-100 group-hover:scale-[1.04] transition-transform duration-[0.6s] ease-out rounded-none">
+                    </div>
+                    <div class="transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-300">
+                        <p class="font-cormorant italic text-[10px] text-[#7A6652] tracking-[0.2em] uppercase mb-1">Interior</p>
+                        <h3 class="font-normal text-lg text-[#1E1E1E]">Master Suite</h3>
+                    </div>
+                </div>
+                <div class="md:col-span-4 group cursor-interact-img fade-up delay-200">
+                    <div class="overflow-hidden relative mb-4 bg-[#F2EFE9] aspect-square">
+                        <div class="absolute inset-0 bg-[#7A6652]/0 group-hover:bg-[#7A6652]/10 transition-colors duration-500 z-10 pointer-events-none"></div>
+                        <img src="https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=1200&q=80" alt="Contemporary Villa" class="w-full h-full object-cover transform scale-100 group-hover:scale-[1.04] transition-transform duration-[0.6s] ease-out rounded-none">
+                    </div>
+                    <div class="transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-300">
+                        <p class="font-cormorant italic text-[10px] text-[#7A6652] tracking-[0.2em] uppercase mb-1">Architecture</p>
+                        <h3 class="font-normal text-lg text-[#1E1E1E]">Contemporary Villa</h3>
+                    </div>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="md:col-span-5 group cursor-interact-img fade-up">
+                    <div class="overflow-hidden relative mb-4 bg-[#F2EFE9] aspect-[3/4]">
+                        <div class="absolute inset-0 bg-[#7A6652]/0 group-hover:bg-[#7A6652]/10 transition-colors duration-500 z-10 pointer-events-none"></div>
+                        <img src="https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800&q=80" alt="Biophilic Home" class="w-full h-full object-cover transform scale-100 group-hover:scale-[1.04] transition-transform duration-[0.6s] ease-out rounded-none">
+                    </div>
+                    <div class="transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-300">
+                        <p class="font-cormorant italic text-[10px] text-[#7A6652] tracking-[0.2em] uppercase mb-1">Sustainability</p>
+                        <h3 class="font-normal text-lg text-[#1E1E1E]">Biophilic Home</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section id="process" class="py-36 md:py-40 bg-[#F2EFE9] overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="fade-up mb-20 text-center md:text-left">
+                <p class="font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-6">04 · How We Work</p>
+                <h2 class="font-cormorant font-light text-5xl md:text-7xl text-[#1E1E1E] tracking-tight">Our Process</h2>
+            </div>
+
+            <div class="relative process-line flex flex-col md:flex-row gap-12 md:gap-8 lg:gap-16 pt-2">
+                
+                <div class="flex-1 relative group fade-up z-10 pl-8 md:pl-0">
+                    <div class="absolute left-0 md:left-auto md:top-0 w-3 h-3 bg-[#7A6652] rounded-full transform -translate-x-[5px] md:-translate-x-0 md:-translate-y-1/2 group-hover:scale-150 transition-transform duration-300"></div>
+                    <div class="md:mt-8">
+                        <span class="font-cormorant italic text-xs text-[#7A6652] block mb-2">01</span>
+                        <h3 class="font-normal text-base text-[#1E1E1E] mb-3 group-hover:text-[#7A6652] transition-colors">Listen</h3>
+                        <p class="font-light text-sm text-[#9A9490] leading-[1.8]">Deep consultation to understand your vision, lifestyle and project requirements.</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative group fade-up delay-100 z-10 pl-8 md:pl-0">
+                    <div class="absolute left-0 md:left-auto md:top-0 w-3 h-3 bg-[#7A6652] rounded-full transform -translate-x-[5px] md:-translate-x-0 md:-translate-y-1/2 group-hover:scale-150 transition-transform duration-300"></div>
+                    <div class="md:mt-8">
+                        <span class="font-cormorant italic text-xs text-[#7A6652] block mb-2">02</span>
+                        <h3 class="font-normal text-base text-[#1E1E1E] mb-3 group-hover:text-[#7A6652] transition-colors">Design</h3>
+                        <p class="font-light text-sm text-[#9A9490] leading-[1.8]">Thoughtful concepts, detailed drawings and material selections tailored to your project.</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative group fade-up delay-200 z-10 pl-8 md:pl-0">
+                    <div class="absolute left-0 md:left-auto md:top-0 w-3 h-3 bg-[#7A6652] rounded-full transform -translate-x-[5px] md:-translate-x-0 md:-translate-y-1/2 group-hover:scale-150 transition-transform duration-300"></div>
+                    <div class="md:mt-8">
+                        <span class="font-cormorant italic text-xs text-[#7A6652] block mb-2">03</span>
+                        <h3 class="font-normal text-base text-[#1E1E1E] mb-3 group-hover:text-[#7A6652] transition-colors">Execute</h3>
+                        <p class="font-light text-sm text-[#9A9490] leading-[1.8]">Precise on-site supervision ensuring quality craftsmanship and timely completion.</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative group fade-up delay-300 z-10 pl-8 md:pl-0">
+                    <div class="absolute left-0 md:left-auto md:top-0 w-3 h-3 bg-[#7A6652] rounded-full transform -translate-x-[5px] md:-translate-x-0 md:-translate-y-1/2 group-hover:scale-150 transition-transform duration-300"></div>
+                    <div class="md:mt-8">
+                        <span class="font-cormorant italic text-xs text-[#7A6652] block mb-2">04</span>
+                        <h3 class="font-normal text-base text-[#1E1E1E] mb-3 group-hover:text-[#7A6652] transition-colors">Deliver</h3>
+                        <p class="font-light text-sm text-[#9A9490] leading-[1.8]">A space that exceeds expectations — beautiful, functional and entirely yours.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="py-36 md:py-40 bg-[#F9F7F4]">
+        <div class="max-w-5xl mx-auto px-6 md:px-12 text-center relative">
+            <p class="font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-16 fade-up">05 · Kind Words</p>
+            
+            <div class="absolute top-12 left-1/2 -translate-x-1/2 text-[80px] font-cormorant text-[#7A6652] opacity-15 pointer-events-none leading-none">"</div>
+            
+            <p class="font-cormorant italic text-2xl md:text-3xl text-[#1E1E1E] leading-[1.7] mb-8 relative z-10 fade-up max-w-3xl mx-auto">
+                "Working with Revathi and D2 was a deeply collaborative experience. The result was a home that feels exactly like us — beautiful, calm and truly livable."
+            </p>
+            <p class="text-[12px] uppercase tracking-[0.2em] text-[#9A9490] font-light fade-up">
+                — Meera & Arun Krishnan, Residential Project, Bengaluru
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-24 text-left">
+                <div class="border border-[#E8E4DF] p-8 md:p-12 hover:border-[#7A6652] hover:bg-[#F2EFE9] transition-all duration-500 fade-up cursor-interact">
+                    <p class="font-light text-sm text-[#1E1E1E] leading-relaxed mb-6">"Revathi's eye for detail and commitment to sustainability transformed our commercial space beyond expectation."</p>
+                    <p class="font-cormorant italic text-xs text-[#9A9490]">— Karthik Nair, Chennai</p>
+                </div>
+                <div class="border border-[#E8E4DF] p-8 md:p-12 hover:border-[#7A6652] hover:bg-[#F2EFE9] transition-all duration-500 fade-up delay-100 cursor-interact">
+                    <p class="font-light text-sm text-[#1E1E1E] leading-relaxed mb-6">"From first sketch to final handover, D2 was professional, creative and deeply invested in getting it right."</p>
+                    <p class="font-cormorant italic text-xs text-[#9A9490]">— Ananya Sharma, Hyderabad</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="bg-[#1E1E1E] text-[#FDFCFA] py-36 md:py-40">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-8">
+            
+            <div class="md:col-span-5 fade-up">
+                <p class="font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-8">06 · Contact</p>
+                
+                <h2 class="font-cormorant tracking-tight leading-[1] mb-8">
+                    <span class="block text-5xl md:text-[52px] font-light text-[#FDFCFA]">Let's Design</span>
+                    <span class="block text-5xl md:text-[52px] font-semibold italic text-[#7A6652]">Something</span>
+                    <span class="block text-5xl md:text-[52px] font-light text-[#FDFCFA]">Beautiful.</span>
+                </h2>
+                
+                <p class="font-light text-base text-[#9A9490] leading-[1.8] mb-12 max-w-sm">
+                    Have a project in mind? We'd love to hear about it. Reach out and let's begin a conversation.
+                </p>
+
+                <div class="space-y-4 font-light text-sm text-[#888888]">
+                    <div class="border-t border-[#333] pt-4 flex gap-4 items-center">
+                        <iconify-icon icon="solar:map-point-linear" class="text-lg"></iconify-icon>
+                        <span>South India (5 Cities)</span>
+                    </div>
+                    <div class="border-t border-[#333] pt-4 flex gap-4 items-center">
+                        <iconify-icon icon="solar:phone-calling-linear" class="text-lg"></iconify-icon>
+                        <span>+91 90361 09195</span>
+                    </div>
+                    <div class="border-t border-[#333] pt-4 flex gap-4 items-center">
+                        <iconify-icon icon="solar:letter-linear" class="text-lg"></iconify-icon>
+                        <span>hello@d2dedicatedtodesign.com</span>
+                    </div>
+                    <div class="border-t border-[#333] pt-4 flex gap-4 items-center">
+                        <iconify-icon icon="solar:clock-circle-linear" class="text-lg"></iconify-icon>
+                        <span>Mon–Sat: 10AM–7PM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-6 md:col-start-7 fade-up delay-100">
+                <form class="space-y-10">
+                    <div class="relative group">
+                        <label class="block font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-2">Your Name</label>
+                        <input type="text" class="w-full bg-transparent border-b border-[#333] text-[#FDFCFA] font-light text-base pb-3 transition-colors focus:border-[#7A6652] hover:border-[#555] cursor-interact rounded-none">
+                    </div>
+                    <div class="relative group">
+                        <label class="block font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-2">Phone Number</label>
+                        <input type="tel" class="w-full bg-transparent border-b border-[#333] text-[#FDFCFA] font-light text-base pb-3 transition-colors focus:border-[#7A6652] hover:border-[#555] cursor-interact rounded-none">
+                    </div>
+                    <div class="relative group">
+                        <label class="block font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-2">Email Address</label>
+                        <input type="email" class="w-full bg-transparent border-b border-[#333] text-[#FDFCFA] font-light text-base pb-3 transition-colors focus:border-[#7A6652] hover:border-[#555] cursor-interact rounded-none">
+                    </div>
+                    <div class="relative group">
+                        <label class="block font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-2">Project Type</label>
+                        <select class="w-full bg-transparent border-b border-[#333] text-[#888] font-light text-base pb-3 transition-colors focus:border-[#7A6652] hover:border-[#555] cursor-interact rounded-none appearance-none">
+                            <option value="" disabled selected>Select a category...</option>
+                            <option value="arch" class="bg-[#1E1E1E]">Luxury Architecture</option>
+                            <option value="int" class="bg-[#1E1E1E]">Interior Design</option>
+                            <option value="land" class="bg-[#1E1E1E]">Landscape Design</option>
+                            <option value="sust" class="bg-[#1E1E1E]">Sustainability</option>
+                            <option value="cons" class="bg-[#1E1E1E]">Design Consultancy</option>
+                        </select>
+                    </div>
+                    <div class="relative group">
+                        <label class="block font-cormorant italic text-[11px] text-[#7A6652] tracking-[0.2em] uppercase mb-2">Tell us about your project</label>
+                        <textarea rows="3" class="w-full bg-transparent border-b border-[#333] text-[#FDFCFA] font-light text-base pb-3 transition-colors focus:border-[#7A6652] hover:border-[#555] cursor-interact resize-none rounded-none"></textarea>
+                    </div>
+                    
+                    <button type="button" class="bg-[#7A6652] text-[#FDFCFA] font-light text-sm py-[18px] px-12 hover:bg-[#5A4535] transition-colors duration-300 cursor-interact rounded-none">
+                        Book a Consultation &rarr;
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#141414] border-t border-[#7A6652]">
+        <div class="max-w-7xl mx-auto px-6 md:px-12 py-16 grid grid-cols-1 md:grid-cols-3 gap-12 items-start text-center md:text-left">
+            
+            <div>
+                <span class="font-cormorant font-light text-3xl text-[#FDFCFA]">D2</span>
+                <span class="block mt-2 text-[10px] text-[#666666] tracking-[0.15em] uppercase">· Dedicated 2 Design</span>
+            </div>
+
+            <div class="md:text-center space-y-4">
+                <p class="font-cormorant italic text-sm text-[#555555]">Sustainable · Bespoke · Timeless</p>
+                <p class="font-light text-[10px] text-[#444444]">© 2025 D2 Dedicated 2 Design. All Rights Reserved.</p>
+            </div>
+
+            <div class="md:text-right flex flex-col md:flex-row gap-6 md:gap-4 justify-end text-[11px] uppercase tracking-widest text-[#555555]">
+                <a href="#work" class="hover:text-[#FDFCFA] transition-colors cursor-interact">Work</a>
+                <a href="#studio" class="hover:text-[#FDFCFA] transition-colors cursor-interact">Studio</a>
+                <a href="#services" class="hover:text-[#FDFCFA] transition-colors cursor-interact">Services</a>
+                <a href="#process" class="hover:text-[#FDFCFA] transition-colors cursor-interact">Process</a>
+                <a href="#contact" class="hover:text-[#FDFCFA] transition-colors cursor-interact">Contact</a>
+            </div>
+        </div>
+
+        <div class="w-full py-4 border-t border-[#222222] text-center px-6">
+            <p class="font-cormorant italic text-[12px] text-[#333333]">
+                Spaces Designed to Breathe · Architecture · Interior · Landscape · Bengaluru · Chennai · Madurai · Coimbatore · Hyderabad
+            </p>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp -->
+    <a href="#contact" class="fixed bottom-8 right-6 md:right-12 z-40 bg-[#7A6652] text-[#FDFCFA] rounded-full px-5 py-3 flex items-center gap-2 text-sm font-light animate-float cursor-interact hover:bg-[#5A4535] transition-colors shadow-none">
+        <iconify-icon icon="solar:chat-line-linear" class="text-lg"></iconify-icon>
+        <span>Book Consultation</span>
+    </a>
+
+    <!-- JavaScript Interactions -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            /* --- Preloader --- */
+            setTimeout(() => document.getElementById('pl-dot').classList.remove('opacity-0'), 200);
+            setTimeout(() => document.getElementById('pl-title').classList.remove('opacity-0'), 1200);
+            setTimeout(() => document.getElementById('pl-sub').classList.remove('opacity-0'), 1700);
+            setTimeout(() => document.getElementById('pl-line').classList.remove('-translate-x-full'), 1700);
+            
+            setTimeout(() => {
+                const pl = document.getElementById('preloader');
+                pl.style.opacity = '0';
+                setTimeout(() => pl.style.display = 'none', 1000);
+                
+                // Trigger Hero animations
+                setTimeout(() => {
+                    document.querySelectorAll('.hero-text').forEach(el => el.classList.add('active'));
+                    setTimeout(() => {
+                        document.querySelectorAll('.hero-element').forEach(el => {
+                            el.classList.add('active');
+                            if(el.classList.contains('w-0')) el.style.width = '48px';
+                        });
+                    }, 400);
+                }, 100);
+            }, 3500);
+
+            /* --- Custom Cursor --- */
+            const dot = document.getElementById('cursor-dot');
+            const circle = document.getElementById('cursor-circle');
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            let circleX = mouseX;
+            let circleY = mouseY;
+            const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+            if(!isTouch) {
+                window.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+                });
+
+                function lerpCursor() {
+                    circleX += (mouseX - circleX) * 0.15;
+                    circleY += (mouseY - circleY) * 0.15;
+                    circle.style.transform = `translate(${circleX}px, ${circleY}px)`;
+                    requestAnimationFrame(lerpCursor);
+                }
+                lerpCursor();
+
+                document.querySelectorAll('a, button, .cursor-interact').forEach(el => {
+                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering-link'));
+                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering-link'));
+                });
+
+                document.querySelectorAll('.cursor-interact-img').forEach(el => {
+                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering-img'));
+                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering-img'));
+                });
+            }
+
+            /* --- Scroll & Parallax --- */
+            const navbar = document.getElementById('navbar');
+            const scrollProgress = document.getElementById('scroll-progress');
+            const aboutImg = document.getElementById('about-img');
+
+            window.addEventListener('scroll', () => {
+                const scrollY = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                
+                // Nav
+                if(scrollY > 100) navbar.classList.add('nav-scrolled');
+                else navbar.classList.remove('nav-scrolled');
+
+                // Progress
+                scrollProgress.style.width = `${(scrollY / docHeight) * 100}%`;
+
+                // Parallax Images
+                if(aboutImg) {
+                    const rect = aboutImg.parentElement.getBoundingClientRect();
+                    if(rect.top < window.innerHeight && rect.bottom > 0) {
+                        aboutImg.style.transform = `translateY(${ (rect.top - window.innerHeight) * 0.1 }px) scale(1.1)`;
+                    }
+                }
+            });
+
+            /* --- Intersection Observers --- */
+            const observerOptions = { threshold: 0.12, rootMargin: "0px 0px -50px 0px" };
+            
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        
+                        // Counter Trigger
+                        if(entry.target.classList.contains('counter') && !entry.target.classList.contains('counted')) {
+                            const target = parseInt(entry.target.getAttribute('data-target'));
+                            const suffix = entry.target.getAttribute('data-suffix') || '';
+                            animateCounter(entry.target, 0, target, 2000, suffix);
+                            entry.target.classList.add('counted');
+                        }
+
+                        // Process Line Trigger
+                        if(entry.target.classList.contains('process-line')) {
+                            entry.target.classList.add('active');
+                        }
+
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.fade-up, .draw-line, .counter, .process-line').forEach(el => {
+                revealObserver.observe(el);
+            });
+
+            /* --- Counter Animation --- */
+            function animateCounter(obj, start, end, duration, suffix) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                    obj.innerHTML = Math.floor(easeOutCubic * (end - start) + start).toLocaleString() + suffix;
+                    if (progress < 1) window.requestAnimationFrame(step);
+                    else obj.innerHTML = end.toLocaleString() + suffix;
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            /* --- Mobile Menu --- */
+            const menuToggle = document.getElementById('menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const spans = menuToggle.querySelectorAll('span');
+            let isMenuOpen = false;
+
+            menuToggle.addEventListener('click', () => {
+                isMenuOpen = !isMenuOpen;
+                if(isMenuOpen) {
+                    mobileMenu.classList.remove('opacity-0', 'pointer-events-none');
+                    spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+                    spans[1].style.transform = 'rotate(-45deg) translate(4px, -4px)';
+                } else {
+                    mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+                    spans[0].style.transform = 'none';
+                    spans[1].style.transform = 'none';
+                }
+            });
+
+            document.querySelectorAll('.mobile-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    isMenuOpen = false;
+                    mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+                    spans[0].style.transform = 'none';
+                    spans[1].style.transform = 'none';
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>
